@@ -13,8 +13,12 @@ class UserRouter @Inject() (controller: UserController) extends SimpleRouter {
     val url = prefix / id.toString
     url.toString
   }
+
   override def routes: Routes = {
     case GET(p"/") =>
       controller.index
+
+    case POST(p"/") =>
+      controller.process
   }
 }

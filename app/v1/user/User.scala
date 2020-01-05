@@ -5,7 +5,7 @@ class UserId private (val value: Int) extends AnyVal {
 }
 
 object UserId {
-  def apply(raw: String) = {
+  def apply(raw: String): UserId = {
     require(raw != null)
     new UserId(Integer.parseInt(raw))
   }

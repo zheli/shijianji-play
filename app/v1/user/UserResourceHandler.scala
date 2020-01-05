@@ -31,4 +31,9 @@ class UserResourceHandler @Inject()(
       UserDataList.map(UserData => createUserResource(UserData))
     }
   }
+
+  def create(userInput: UserFormInput)(implicit mc:MarkerContext): Future[UserResource] = {
+    val data = User(UserId("999"), userInput.email)
+    Future(createUserResource(data))
+  }
 }

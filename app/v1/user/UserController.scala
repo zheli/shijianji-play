@@ -2,13 +2,16 @@ package v1.user
 
 import javax.inject.Inject
 import play.api.Logger
+import play.api.data.Form
 import play.api.http.FileMimeTypes
 import play.api.i18n.{Langs, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import utils.RequestMarkerContext
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
+
+case class UserFormInput(email: String)
 
 case class UserControllerComponents @Inject()(
   userActionBuilder: UserActionBuilder,
@@ -37,10 +40,40 @@ class UserBaseController(pcc: UserControllerComponents) extends BaseController w
 class UserController @Inject()(cc: UserControllerComponents)(implicit ec: ExecutionContext) extends UserBaseController(cc) {
   private val logger = Logger(getClass)
 
+  private val form: Form[UserFormInput] = {
+    import play.api.data.Forms._
+
+    Form(
+      mapping(
+        "email" -> nonEmptyText
+      )(UserFormInput.apply)(UserFormInput.unapply)
+    )
+  }
+
   def index: Action[AnyContent] = UserAction.async { implicit request =>
     logger.trace("index: ")
     userResourceHandler.find.map { posts =>
       Ok(Json.toJson(posts))
     }
+  }
+
+  def process: Action[AnyContent] = UserAction.async { implicit request =>
+    logger.trace("process: ")
+    processJsonPost()
+  }
+
+  private def processJsonPost[A]()(
+    implicit request: UserRequest[A]): Future[Result] = {
+    def failure(badForm: Form[UserFormInput]) = {
+      Future.successful(BadRequest(badForm.errorsAsJson))
+    }
+
+    def success(input: UserFormInput) = {
+      userResourceHandler.create(input).map { post =>
+        Created(Json.toJson(post)).withHeaders(LOCATION -> post.link)
+      }
+    }
+
+    form.bindFromRequest().fold(failure, success)
   }
 }
