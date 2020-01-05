@@ -22,7 +22,7 @@ class UserResourceHandler @Inject()(
     routerProvider: Provider[UserRouter],
     UserRepository: UserRepository)(implicit ec: ExecutionContext) {
 
-  private def createUserResource(p: UserData): UserResource = {
+  private def createUserResource(p: User): UserResource = {
     UserResource(p.id.toString, p.email, routerProvider.get.link(p.id))
   }
 

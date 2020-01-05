@@ -6,22 +6,8 @@ import storage.RepositoryExecutionContext
 
 import scala.concurrent.Future
 
-class UserId private (val value: Int) extends AnyVal {
-  override def toString: String = value.toString
-}
-object UserId {
-  def apply(raw: String) = {
-    require(raw != null)
-    new UserId(Integer.parseInt(raw))
-  }
-
-  def apply(id: Int) = new UserId(id)
-}
-
-final case class UserData(id: UserId, email: String)
-
 trait UserRepository {
-  def list()(implicit ec: MarkerContext): Future[Iterable[UserData]]
+  def list()(implicit ec: MarkerContext): Future[Iterable[User]]
 }
 
 @Singleton
@@ -30,10 +16,10 @@ class UserRepositoryImpl @Inject()()(implicit ec: RepositoryExecutionContext)
   private val logger = Logger(this.getClass)
 
   private val userList = List(
-    UserData(UserId(1), "test@test.com")
+    User(UserId(1), "test@test.com")
   )
 
-  override def list()(implicit mc: MarkerContext): Future[List[UserData]] = {
+  override def list()(implicit mc: MarkerContext): Future[List[User]] = {
     Future {
       logger.trace(s"list: ")
       userList
