@@ -15,9 +15,7 @@ object UserId {
     new UserId(Integer.parseInt(raw))
   }
 
-  def apply(id: Int) = {
-    new UserId(id)
-  }
+  def apply(id: Int) = new UserId(id)
 }
 
 final case class UserData(id: UserId, email: String)

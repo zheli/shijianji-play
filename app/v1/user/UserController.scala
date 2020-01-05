@@ -1,12 +1,18 @@
 package v1.user
 
 import javax.inject.Inject
-import play.api.mvc.{BaseController, ControllerComponents}
+import play.api.Logger
+import play.api.http.FileMimeTypes
+import play.api.i18n.{Langs, MessagesApi}
+import play.api.libs.json.Json
+import play.api.mvc._
 import utils.RequestMarkerContext
 
+import scala.concurrent.ExecutionContext
+
 case class UserControllerComponents @Inject()(
-  postActionBuilder: UserActionBuilder,
-  postResourceHandler: PostResourceHandler,
+  userActionBuilder: UserActionBuilder,
+  userResourceHandler: UserResourceHandler,
   actionBuilder: DefaultActionBuilder,
   parsers: PlayBodyParsers,
   messagesApi: MessagesApi,
@@ -20,11 +26,21 @@ case class UserControllerComponents @Inject()(
 class UserBaseController(pcc: UserControllerComponents) extends BaseController with RequestMarkerContext {
   override protected def controllerComponents: ControllerComponents = pcc
 
-  def PostAction: PostActionBuilder = pcc.postActionBuilder
+  def UserAction: UserActionBuilder = pcc.userActionBuilder
 
-  def postResourceHandler: PostResourceHandler = pcc.postResourceHandler
+  def userResourceHandler: UserResourceHandler = pcc.userResourceHandler
 }
 
-class UserController extends UserBaseController {
+/**
+ * Takes HTTP requests and produces JSON.
+ */
+class UserController @Inject()(cc: UserControllerComponents)(implicit ec: ExecutionContext) extends UserBaseController(cc) {
+  private val logger = Logger(getClass)
 
+  def index: Action[AnyContent] = UserAction.async { implicit request =>
+    logger.trace("index: ")
+    userResourceHandler.find.map { posts =>
+      Ok(Json.toJson(posts))
+    }
+  }
 }
