@@ -52,8 +52,16 @@ class UserController @Inject()(cc: UserControllerComponents)(implicit ec: Execut
 
   def index: Action[AnyContent] = UserAction.async { implicit request =>
     logger.trace("index: ")
-    userResourceHandler.find.map { posts =>
-      Ok(Json.toJson(posts))
+    userResourceHandler.list.map { users =>
+      Ok(Json.toJson(users))
+    }
+  }
+
+  def findByEmail(email: String): Action[AnyContent] = UserAction.async { implicit request =>
+    logger.trace(s"findByEmail: ${email}")
+    userResourceHandler.find(email).map {
+      case Some(user) => Ok(Json.toJson(user))
+      case None => Ok("{}")
     }
   }
 

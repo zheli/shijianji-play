@@ -20,7 +20,7 @@ object UserResource {
 /**
   * Controls access to the backend data, returning [[UserResource]]
   */
-class UserResourceHandler @Inject()(routerProvider: Provider[UserRouter], userRepository: UserRepository, usersDao: UsersDAO)(
+class UserResourceHandler @Inject()(routerProvider: Provider[UserRouter], usersDao: UsersDAO)(
   implicit ec: ExecutionContext
 ) {
 
@@ -28,11 +28,11 @@ class UserResourceHandler @Inject()(routerProvider: Provider[UserRouter], userRe
     UserResource(p.id.toString, p.email, routerProvider.get.link(p.id))
   }
 
-  def find(implicit mc: MarkerContext): Future[Iterable[UserResource]] = {
-    userRepository.list().map { UserDataList =>
-      UserDataList.map(UserData => createUserResource(UserData))
-    }
-  }
+  def find(email: String)(implicit mc: MarkerContext): Future[Option[UserResource]] =
+    usersDao.findByEmail(email).map(_.map(createUserResource))
+
+  def list(implicit mc: MarkerContext): Future[Iterable[UserResource]] =
+    usersDao.list().map(_.map(createUserResource))
 
   def create(userInput: UserFormInput)(implicit mc: MarkerContext): Future[UserResource] = {
     val data = User(UserId(999), userInput.email)

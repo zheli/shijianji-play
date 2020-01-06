@@ -16,8 +16,12 @@ class UserRouter @Inject() (controller: UserController) extends SimpleRouter {
   }
 
   override def routes: Routes = {
-    case GET(p"/") =>
-      controller.index
+    case GET(p"/" ? q_?"email=$email") => email match {
+      case Some(email) =>
+        controller.findByEmail(email)
+      case None =>
+        controller.index
+    }
 
     case POST(p"/") =>
       controller.process
