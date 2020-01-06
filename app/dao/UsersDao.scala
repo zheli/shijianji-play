@@ -2,6 +2,7 @@ package dao
 
 import javax.inject.{Inject, Singleton}
 import models.{User, UserId}
+import play.api.{Logger, MarkerContext}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig, HasDatabaseConfigProvider}
 import utils.MyPostgresProfile
 
@@ -22,6 +23,8 @@ trait UsersComponent { self: HasDatabaseConfig[MyPostgresProfile] =>
 class UsersDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
     extends UsersComponent
     with HasDatabaseConfigProvider[MyPostgresProfile] {
+  private val logger = Logger(this.getClass)
+
   import profile.api._
 
   val users = TableQuery[Users]
@@ -35,9 +38,15 @@ class UsersDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)
 //    db.run(query.result).map(rows => rows.map { case (id, name) => (id.toString, name) })
 //  }
 
-  /** Insert a new user */
   def insert(user: User): Future[Int] =
     db.run(users += user)
+
+  def findByEmail(email: String)(implicit mc: MarkerContext): Future[Option[User]] = {
+    logger.trace(s"find: $email")
+    db.run(users.filter(_.email === email).result.headOption)
+  }
+
+  def list(): Future[Seq[User]] = db.run(users.result)
 
 //  /** Insert new users */
 //  def insert(users: Seq[Company]): Future[Unit] =
