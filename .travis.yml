@@ -1,3 +1,7 @@
+services:
+  - postgresql
 language: scala
 scala:
   - 2.13.1
+before_script:
+  - psql -c 'create database shijianji_play;' -U postgres
