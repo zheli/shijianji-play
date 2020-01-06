@@ -2,7 +2,7 @@ package utils
 
 import com.github.tminglei.slickpg._
 
-trait MyPostgresProfile extends ExPostgresDriver
+trait MyPostgresProfile extends ExPostgresProfile
   with PgArraySupport
   with PgDate2Support
   with PgPlayJsonSupport

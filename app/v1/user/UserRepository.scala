@@ -1,6 +1,7 @@
 package v1.user
 
 import javax.inject.{Inject, Singleton}
+import models.{User, UserId}
 import play.api.{Logger, MarkerContext}
 import storage.RepositoryExecutionContext
 

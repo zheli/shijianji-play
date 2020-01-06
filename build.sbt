@@ -1,4 +1,4 @@
-name := """shijianji-play"""
+name := """shijianji"""
 organization := "it.softfork"
 
 version := "1.0-SNAPSHOT"
