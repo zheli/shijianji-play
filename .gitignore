@@ -1,9 +1,11 @@
 logs
 target
+/.bloop
+/.classpath
 /.g8
 /.idea
 /.idea_modules
-/.classpath
+/.metals
 /.project
 /.settings
 /RUNNING_PID
