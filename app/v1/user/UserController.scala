@@ -66,7 +66,7 @@ class UserController @Inject()(cc: UserControllerComponents)(implicit ec: Execut
   }
 
   def process: Action[AnyContent] = UserAction.async { implicit request =>
-    logger.trace("process: ")
+    logger.trace(s"process: $request")
     processJsonPost()
   }
 

@@ -31,6 +31,9 @@ scalacOptions ++=  Seq(
   "-Xfatal-warnings"
 )
 
+// Use different configuration file for test
+javaOptions in Test += "-Dconfig.file=conf/application.test.conf"
+
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "it.softfork.controllers._"
 
