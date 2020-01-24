@@ -16,3 +16,6 @@ sbt:shijianji-play> run
 sbt
 sbt:shijianji-play> test
 ```
+
+## Roadmap
+- [ ] User endpoint
