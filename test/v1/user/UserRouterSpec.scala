@@ -1,11 +1,12 @@
 package v1.user
 
+import dao.UsersDAO
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll}
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice._
 import play.api.db.evolutions.{Evolutions, ThisClassLoaderEvolutionsReader}
-import play.api.libs.json.{JsResult, Json}
-import play.api.mvc.{AnyContentAsEmpty, RequestHeader, Result}
+import play.api.libs.json.{JsArray, JsObject, JsResult, JsValue, Json}
+import play.api.mvc.{AnyContent, AnyContentAsEmpty, AnyContentAsJson, RequestHeader, Result}
 import play.api.db.{DBApi, Database}
 import play.api.test._
 import play.api.test.Helpers._
@@ -17,6 +18,11 @@ import scala.concurrent.Future
 
 class UserRouterSpec extends PlaySpec with BeforeAndAfter with GuiceOneAppPerSuite with Injecting {
   import ThisClassLoaderEvolutionsReader.evolutions
+
+  def withAcceptJsonHeader[A](request: FakeRequest[A]) = request.withHeaders(
+    HOST -> "localhost:9000",
+    ACCEPT -> "application/json"
+  )
 
   before {
     info("Running before() to setup")
@@ -33,40 +39,42 @@ class UserRouterSpec extends PlaySpec with BeforeAndAfter with GuiceOneAppPerSui
   "UserRouter" should {
 
     "Return an empty list when there are no users" in {
-      val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, "/v1/users").withHeaders(
-        HOST -> "localhost:9000",
-        ACCEPT -> "application/json"
-      )
-      val home: Future[Result] = route(app, request).get
-
-      val users: Seq[UserResource] = Json.fromJson[Seq[UserResource]](contentAsJson(home)).get
+      val request: FakeRequest[AnyContentAsEmpty.type] = withAcceptJsonHeader(FakeRequest(GET, "/v1/users"))
+      val requestResult: Future[Result] = route(app, request).get
+      val users: Seq[UserResource] = Json.fromJson[Seq[UserResource]](contentAsJson(requestResult)).get
       users mustBe empty
     }
-  }
-}
 
-//class UserRouterSpec extends PlaySpec with GuiceOneAppPerTest {
-////  override def fakeApplication(): Application = {
-////    GuiceApplicationBuilder().configure(
-////      Map(
-////        "slick.dbs.default.db.url" -> "jdbc:postgresql://localhost/shijianji_play_test"
-////      )
-////    ).build()
-////  }
-//
-//  "User route" should {
-//    "List all users" in {
-//      val request = FakeRequest(GET, "/v1/users").withHeaders(HOST -> "localhost:9000").withCSRFToken
-//      val users:Future[Result] = route(app, request).get
-//
-//      val users: Seq[UserResource] = Json.fromJson[Seq[UserResource]](contentAsJson(users)).get
-//      users.filter(_.id == "1").head mustBe (PostResource("1","/v1/users/1", "title 1", "blog post 1" ))
-//    }
-////    import java.net._
-////    val Some(result) = route(app, FakeRequest(GET, "/v1/users"))
-////    val url = new URL("http://localhost:" + port + "/v1/users")
-////    val con = url.openConnection().asInstanceOf[HttpURLConnection]
-////    try con.getResponseCode mustBe 404
-////    finally con.disconnect()
-//  }
-//}
+    "Create a new user from a successful post request" in {
+      val userEmail = "ha@ha.com"
+      val requestBody = Json.obj("email" -> userEmail)
+      val request: FakeRequest[AnyContentAsJson] = withAcceptJsonHeader(FakeRequest(POST, "/v1/users")).withJsonBody(requestBody)
+      val requestResult = route(app, request).get
+      await(requestResult)
+
+      val usersDao = inject[UsersDAO]
+      val users = await(usersDao.list())
+
+      users.length mustBe 1
+      users.head.email mustBe "ha@ha.com"
+    }
+
+    "Create multiple users" in {
+      val emails: Seq[String] = for (n <- 1 to 3 ) yield s"ha$n@ha.com"
+
+      emails.foreach { email =>
+        val requestBody = Json.obj("email" -> email)
+        val request: FakeRequest[AnyContentAsJson] = withAcceptJsonHeader(FakeRequest(POST, "/v1/users")).withJsonBody(requestBody)
+        val requestResult = route(app, request).get
+        await(requestResult)
+      }
+
+      val usersDao = inject[UsersDAO]
+      val users = await(usersDao.list())
+
+      users.length mustBe emails.length
+      users.map(_.email) mustBe emails
+    }
+  }
+
+}
