@@ -36,7 +36,7 @@ class UserResourceHandler @Inject()(routerProvider: Provider[UserRouter], usersD
 
   def create(userInput: UserFormInput)(implicit mc: MarkerContext): Future[UserResource] = {
     // UserId value is not important here as it will be created by database
-    val data = User(UserId(999), Email(userInput.email))
-    usersDao.insert(data).map(_ => createUserResource(data))
+    val data = User(UserId(1), Email(userInput.email))
+    usersDao.insert(data).map(createUserResource)
   }
 }

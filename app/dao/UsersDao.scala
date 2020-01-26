@@ -38,8 +38,13 @@ class UsersDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)
 //    db.run(query.result).map(rows => rows.map { case (id, name) => (id.toString, name) })
 //  }
 
-  def insert(user: User): Future[Int] =
-    db.run(users += user)
+  val insertQuery = users returning users.map(_.id) into ((user, id) => user.copy(id = id))
+
+  def insert(user: User): Future[User] = {
+    // Output user id after insert, see https://stackoverflow.com/questions/31443505/slick-3-0-insert-and-then-get-auto-increment-value
+    val action = insertQuery += user
+    db.run(action)
+  }
 
   def findByEmail(email: String)(implicit mc: MarkerContext): Future[Option[User]] = {
     logger.trace(s"find: $email")

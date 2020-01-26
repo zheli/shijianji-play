@@ -95,5 +95,4 @@ class UserRouterSpec extends PlaySpec with BeforeAndAfter with GuiceOneAppPerSui
       await(usersDao.list()) mustBe empty
     }
   }
-
 }
