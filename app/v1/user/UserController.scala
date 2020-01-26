@@ -45,7 +45,7 @@ class UserController @Inject()(cc: UserControllerComponents)(implicit ec: Execut
 
     Form(
       mapping(
-        "email" -> nonEmptyText
+        "email" -> email
       )(UserFormInput.apply)(UserFormInput.unapply)
     )
   }

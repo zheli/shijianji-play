@@ -2,7 +2,7 @@ package v1.user
 
 import dao.UsersDAO
 import javax.inject.{Inject, Provider}
-import models.{User, UserId}
+import models.{Email, User, UserId}
 import play.api.MarkerContext
 import play.api.libs.json.{Format, Json}
 
@@ -25,7 +25,7 @@ class UserResourceHandler @Inject()(routerProvider: Provider[UserRouter], usersD
 ) {
 
   private def createUserResource(p: User): UserResource = {
-    UserResource(p.id.toString, p.email, routerProvider.get.link(p.id))
+    UserResource(p.id.toString, p.email.value, routerProvider.get.link(p.id))
   }
 
   def find(email: String)(implicit mc: MarkerContext): Future[Option[UserResource]] =
@@ -35,7 +35,8 @@ class UserResourceHandler @Inject()(routerProvider: Provider[UserRouter], usersD
     usersDao.list().map(_.map(createUserResource))
 
   def create(userInput: UserFormInput)(implicit mc: MarkerContext): Future[UserResource] = {
-    val data = User(UserId(999), userInput.email)
+    // UserId value is not important here as it will be created by database
+    val data = User(UserId(999), Email(userInput.email))
     usersDao.insert(data).map(_ => createUserResource(data))
   }
 }

@@ -1,7 +1,7 @@
 package dao
 
 import javax.inject.{Inject, Singleton}
-import models.{User, UserId}
+import models.{Email, User, UserId}
 import play.api.{Logger, MarkerContext}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig, HasDatabaseConfigProvider}
 import utils.MyPostgresProfile
@@ -13,7 +13,7 @@ trait UsersComponent { self: HasDatabaseConfig[MyPostgresProfile] =>
 
   class Users(tag: Tag) extends Table[User](tag, "users") {
     def id = column[UserId]("id", O.PrimaryKey, O.AutoInc)
-    def email = column[String]("email")
+    def email = column[Email]("email")
 
     def * = (id, email) <> ((User.apply _).tupled, User.unapply)
   }
@@ -43,7 +43,7 @@ class UsersDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)
 
   def findByEmail(email: String)(implicit mc: MarkerContext): Future[Option[User]] = {
     logger.trace(s"find: $email")
-    db.run(users.filter(_.email === email).result.headOption)
+    db.run(users.filter(_.email === Email(email)).result.headOption)
   }
 
   def list(): Future[Seq[User]] = db.run(users.result)
