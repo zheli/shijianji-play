@@ -52,9 +52,4 @@ class UsersDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)
   }
 
   def list(): Future[Seq[User]] = db.run(users.result)
-
-//  /** Insert new users */
-//  def insert(users: Seq[Company]): Future[Unit] =
-//    db.run(this.users ++= users).map(_ => ())
-
 }
