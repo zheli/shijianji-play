@@ -11,7 +11,7 @@ import scala.concurrent.{ExecutionContext, Future}
 trait UsersDAO { self: HasDatabaseConfig[MyPostgresProfile] =>
   import profile.api._
 
-  final case class DBUser(id: Option[Long], email: String)
+  case class DBUser(id: Option[Long], email: String)
 
   class Users(tag: Tag) extends Table[DBUser](tag, "USER") {
     def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
@@ -20,7 +20,7 @@ trait UsersDAO { self: HasDatabaseConfig[MyPostgresProfile] =>
     def * = (id.?, email) <> ((DBUser.apply _).tupled, DBUser.unapply)
   }
 
-  final case class DBLoginInfo(id: Option[Long], providerID: String, providerKey: String)
+  case class DBLoginInfo(id: Option[Long], providerID: String, providerKey: String)
 
   class LoginInfos(tag: Tag) extends Table[DBLoginInfo](tag, "LOGIN_INFO") {
     def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
@@ -30,7 +30,7 @@ trait UsersDAO { self: HasDatabaseConfig[MyPostgresProfile] =>
     def * = (id.?, providerId, providerKey) <> (DBLoginInfo.tupled, DBLoginInfo.unapply)
   }
 
-  final case class DBUserLoginInfo(userId: UserId, loginInfoId: Long)
+  case class DBUserLoginInfo(userId: UserId, loginInfoId: Long)
 
   class UserLoginInfos(tag: Tag) extends Table[DBUserLoginInfo](tag, "USER_LOGIN_INFO") {
     def userId = column[UserId]("USER_ID")
@@ -39,7 +39,7 @@ trait UsersDAO { self: HasDatabaseConfig[MyPostgresProfile] =>
     def * = (userId, loginInfoId) <> (DBUserLoginInfo.tupled, DBUserLoginInfo.unapply)
   }
 
-  final case class DBPasswordInfo(hasher: String, password: String, salt: Option[String], loginInfoId: Long)
+  case class DBPasswordInfo(hasher: String, password: String, salt: Option[String], loginInfoId: Long)
 
   class PasswordInfos(tag: Tag) extends Table[DBPasswordInfo](tag, "PASSWORD_INFO") {
     def hasher = column[String]("HASHER")
@@ -73,23 +73,34 @@ class UsersDAOImpl @Inject()(protected val dbConfigProvider: DatabaseConfigProvi
 //    db.run(query.result).map(rows => rows.map { case (id, name) => (id.toString, name) })
 //  }
 
-  val insertQuery = users returning users.map(_.id) into ((user, id) => user.copy(id = id))
 
   def insert(user: User): Future[User] = {
+    val dbUser = DBUser(id=None, email=user.email.value)
     // Output user id after insert, see https://stackoverflow.com/questions/31443505/slick-3-0-insert-and-then-get-auto-increment-value
-    val action = insertQuery += user
+    val insertQuery = users returning users.map(_.id) into ((user, id) => user.copy(id = Some(id)))
+    val action = insertQuery += dbUser
     db.run(action)
+    // TODO fix this
+    Future(user)
   }
 
   def findByEmail(email: String)(implicit mc: MarkerContext): Future[Option[User]] = {
     logger.trace(s"find: $email")
-    db.run(users.filter(_.email === Email(email)).result.headOption)
+    db.run(users.filter(_.email === email).result.headOption)
+    // TODO fix this
+    Future(None)
   }
 
   def find(userId: UserId)(implicit mc: MarkerContext): Future[Option[User]] = {
     logger.trace(s"find: $userId")
-    db.run(users.filter(_.id === userId).result.headOption)
+//    db.run(users.filter(_.id === userId).result.headOption)
+    // TODO fix this
+    Future(None)
   }
 
-  def list(): Future[Seq[User]] = db.run(users.result)
+  def list(): Future[Seq[User]] = {
+//    db.run(users.result)
+    // TODO fix this
+    Future(Seq.empty[User])
+  }
 }
