@@ -11,11 +11,13 @@ import scala.concurrent.{ExecutionContext, Future}
 trait UsersDAO { self: HasDatabaseConfig[MyPostgresProfile] =>
   import profile.api._
 
-  class Users(tag: Tag) extends Table[User](tag, "USER") {
-    def id = column[UserId]("ID", O.PrimaryKey, O.AutoInc)
-    def email = column[Email]("EMAIL")
+  case class DBUser(id: Option[Long], email: String)
 
-    def * = (id, email) <> ((User.apply _).tupled, User.unapply)
+  class Users(tag: Tag) extends Table[DBUser](tag, "USER") {
+    def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def email = column[String]("EMAIL")
+
+    def * = (id.?, email) <> ((DBUser.apply _).tupled, DBUser.unapply)
   }
 
   case class DBLoginInfo(id: Option[Long], providerID: String, providerKey: String)
