@@ -1,6 +1,6 @@
 package v1.user
 
-import dao.UsersDAO
+import dao.UsersDAOImpl
 import models.Email
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll}
 import org.scalatestplus.play._
@@ -59,7 +59,7 @@ class UserRouterSpec extends PlaySpec with BeforeAndAfter with GuiceOneAppPerSui
       val requestResult = route(app, request).get
       await(requestResult)
 
-      val usersDao = inject[UsersDAO]
+      val usersDao = inject[UsersDAOImpl]
       val users = await(usersDao.list())
 
       users.length mustBe 1
@@ -76,7 +76,7 @@ class UserRouterSpec extends PlaySpec with BeforeAndAfter with GuiceOneAppPerSui
         await(requestResult)
       }
 
-      val usersDao = inject[UsersDAO]
+      val usersDao = inject[UsersDAOImpl]
       val users = await(usersDao.list())
 
       users.length mustBe emails.length
@@ -84,7 +84,7 @@ class UserRouterSpec extends PlaySpec with BeforeAndAfter with GuiceOneAppPerSui
     }
 
     "only accept valid email as user email" in {
-      val usersDao = inject[UsersDAO]
+      val usersDao = inject[UsersDAOImpl]
 
       val emptyEmail = ""
       await(createUser(emptyEmail))

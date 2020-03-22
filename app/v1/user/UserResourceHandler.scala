@@ -1,6 +1,6 @@
 package v1.user
 
-import dao.UsersDAO
+import dao.UsersDAOImpl
 import javax.inject.{Inject, Provider}
 import models.{Email, User, UserId}
 import play.api.MarkerContext
@@ -20,7 +20,7 @@ object UserResource {
 /**
   * Controls access to the backend data, returning [[UserResource]]
   */
-class UserResourceHandler @Inject()(routerProvider: Provider[UserRouter], usersDao: UsersDAO)(
+class UserResourceHandler @Inject()(routerProvider: Provider[UserRouter], usersDao: UsersDAOImpl)(
   implicit ec: ExecutionContext
 ) {
 

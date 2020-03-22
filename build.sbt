@@ -1,3 +1,4 @@
+
 name := """shijianji"""
 organization := "it.softfork"
 
@@ -22,7 +23,15 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-slick" % "5.0.0",
   "com.typesafe.play" %% "play-slick-evolutions" % "5.0.0",
   "com.github.tminglei" %% "slick-pg" % "0.18.1", // postgresql extensions
-  "com.github.tminglei" %% "slick-pg_play-json" % "0.18.1" // play-json support
+  "com.github.tminglei" %% "slick-pg_play-json" % "0.18.1", // play-json support
+  // Auth
+  "com.mohiva" %% "play-silhouette" % "7.0.0",
+  // Typesafe Config util
+  "com.iheart" %% "ficus" % "1.4.7"
+)
+
+resolvers ++= Seq(
+  Resolver.jcenterRepo
 )
 
 scalacOptions ++=  Seq(

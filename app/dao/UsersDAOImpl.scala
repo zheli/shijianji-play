@@ -20,7 +20,7 @@ trait UsersComponent { self: HasDatabaseConfig[MyPostgresProfile] =>
 }
 
 @Singleton
-class UsersDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
+class UsersDAOImpl @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
     extends UsersComponent
     with HasDatabaseConfigProvider[MyPostgresProfile] {
   private val logger = Logger(this.getClass)
@@ -49,6 +49,11 @@ class UsersDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)
   def findByEmail(email: String)(implicit mc: MarkerContext): Future[Option[User]] = {
     logger.trace(s"find: $email")
     db.run(users.filter(_.email === Email(email)).result.headOption)
+  }
+
+  def find(userId: UserId)(implicit mc: MarkerContext): Future[Option[User]] = {
+    logger.trace(s"find: $userId")
+    db.run(users.filter(_.id === userId).result.headOption)
   }
 
   def list(): Future[Seq[User]] = db.run(users.result)

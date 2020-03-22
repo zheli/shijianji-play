@@ -70,8 +70,7 @@ class UserController @Inject()(cc: UserControllerComponents)(implicit ec: Execut
     processJsonPost()
   }
 
-  private def processJsonPost[A]()(
-    implicit request: UserRequest[A]): Future[Result] = {
+  private def processJsonPost[A]()(implicit request: UserRequest[A]): Future[Result] = {
     def failure(badForm: Form[UserFormInput]) = {
       Future.successful(BadRequest(badForm.errorsAsJson))
     }
