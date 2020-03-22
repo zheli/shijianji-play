@@ -8,7 +8,7 @@ import utils.MyPostgresProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait UsersComponent { self: HasDatabaseConfig[MyPostgresProfile] =>
+trait UsersDAO { self: HasDatabaseConfig[MyPostgresProfile] =>
   import profile.api._
 
   class Users(tag: Tag) extends Table[User](tag, "USER") {
@@ -17,18 +17,51 @@ trait UsersComponent { self: HasDatabaseConfig[MyPostgresProfile] =>
 
     def * = (id, email) <> ((User.apply _).tupled, User.unapply)
   }
+
+  case class DBLoginInfo(id: Option[Long], providerID: String, providerKey: String)
+
+  class LoginInfos(tag: Tag) extends Table[DBLoginInfo](tag, "LOGIN_INFO") {
+    def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def providerId = column[String]("PROVIDER_ID")
+    def providerKey = column[String]("PROVIDER_KEY")
+
+    def * = (id.?, providerId, providerKey) <> (DBLoginInfo.tupled, DBLoginInfo.unapply)
+  }
+
+  case class DBUserLoginInfo(userId: UserId, loginInfoId: Long)
+
+  class UserLoginInfos(tag: Tag) extends Table[DBUserLoginInfo](tag, "USER_LOGIN_INFO") {
+    def userId = column[UserId]("USER_ID")
+    def loginInfoId = column[Long]("LOGIN_INFO_ID")
+
+    def * = (userId, loginInfoId) <> (DBUserLoginInfo.tupled, DBUserLoginInfo.unapply)
+  }
+
+  case class DBPasswordInfo(hasher: String, password: String, salt: Option[String], loginInfoId: Long)
+
+  class PasswordInfos(tag: Tag) extends Table[DBPasswordInfo](tag, "PASSWORD_INFO") {
+    def hasher = column[String]("HASHER")
+    def password = column[String]("PASSWORD")
+    def salt = column[Option[String]]("SALT")
+    def loginInfoId = column[Long]("LOGIN_INFO_ID")
+
+    def * = (hasher, password, salt, loginInfoId) <> (DBPasswordInfo.tupled, DBPasswordInfo.unapply)
+  }
+
+  val users = TableQuery[Users]
+  val loginInfos = TableQuery[LoginInfos]
+  val userLoginInfos = TableQuery[UserLoginInfos]
+  val passwordInfos = TableQuery[PasswordInfos]
+
 }
 
 @Singleton
 class UsersDAOImpl @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
-    extends UsersComponent
+    extends UsersDAO
     with HasDatabaseConfigProvider[MyPostgresProfile] {
   private val logger = Logger(this.getClass)
 
   import profile.api._
-
-  val users = TableQuery[Users]
-
 //  /** Construct the Map[String,String] needed to fill a select options set */
 //  def options(): Future[Seq[(String, String)]] = {
 //    val query = (for {
