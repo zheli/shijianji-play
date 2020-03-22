@@ -1,11 +1,11 @@
 # --- !Ups
 
-CREATE TABLE "users" (
-    "id" bigserial NOT NULL,
-    "email" text NOT NULL,
-    PRIMARY KEY ("id")
+CREATE TABLE "USER" (
+    "USER_ID" bigserial NOT NULL,
+    "EMAIL" text NOT NULL,
+    PRIMARY KEY ("USER_ID")
 );
 
 # --- !Downs
 
-DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS USER CASCADE;
