@@ -1,9 +1,9 @@
 # --- !Ups
 
 CREATE TABLE "USER" (
-    "USER_ID" bigserial NOT NULL,
+    "ID" bigserial NOT NULL,
     "EMAIL" text NOT NULL,
-    PRIMARY KEY ("USER_ID")
+    PRIMARY KEY ("ID")
 );
 
 # --- !Downs

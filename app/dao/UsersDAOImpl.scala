@@ -12,7 +12,7 @@ trait UsersComponent { self: HasDatabaseConfig[MyPostgresProfile] =>
   import profile.api._
 
   class Users(tag: Tag) extends Table[User](tag, "USER") {
-    def id = column[UserId]("USER_ID", O.PrimaryKey, O.AutoInc)
+    def id = column[UserId]("ID", O.PrimaryKey, O.AutoInc)
     def email = column[Email]("EMAIL")
 
     def * = (id, email) <> ((User.apply _).tupled, User.unapply)
