@@ -7,7 +7,10 @@ version := "1.0-SNAPSHOT"
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
 
-scalaVersion := "2.13.1"
+//scalaVersion := "2.13.1"
+scalaVersion := "2.12.11"
+
+val silhouetteVersion = "7.0.0"
 
 libraryDependencies ++= Seq(
   // Dependency Injection
@@ -25,8 +28,10 @@ libraryDependencies ++= Seq(
   "com.github.tminglei" %% "slick-pg" % "0.18.1", // postgresql extensions
   "com.github.tminglei" %% "slick-pg_play-json" % "0.18.1", // play-json support
   // Auth
-  "com.mohiva" %% "play-silhouette" % "7.0.0",
-  // Typesafe Config util
+  "com.mohiva" %% "play-silhouette" % silhouetteVersion,
+  "com.mohiva" %% "play-silhouette-persistence" % silhouetteVersion,
+  "com.mohiva" %% "play-silhouette-persistence-reactivemongo" % "5.0.6", // TODO: Remove this
+// Typesafe Config util
   "com.iheart" %% "ficus" % "1.4.7"
 )
 
