@@ -5,11 +5,13 @@ import com.google.inject.name.Named
 import com.mohiva.play.silhouette.api.crypto.{Crypter, CrypterAuthenticatorEncoder, Signer}
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
 import com.mohiva.play.silhouette.api.services.AuthenticatorService
-import com.mohiva.play.silhouette.api.util.{Clock, FingerprintGenerator, IDGenerator, PasswordInfo}
+import com.mohiva.play.silhouette.api.util.{Clock, FingerprintGenerator, IDGenerator, PasswordHasherRegistry, PasswordInfo}
 import com.mohiva.play.silhouette.api.{Environment, EventBus, Silhouette, SilhouetteProvider}
-import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaCrypterSettings}
+import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaCrypterSettings, JcaSigner, JcaSignerSettings}
 import com.mohiva.play.silhouette.impl.authenticators.{CookieAuthenticator, CookieAuthenticatorService, CookieAuthenticatorSettings}
-import com.mohiva.play.silhouette.persistence.daos.DelegableAuthInfoDAO
+import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
+import com.mohiva.play.silhouette.password.{BCryptPasswordHasher, BCryptSha256PasswordHasher}
+import com.mohiva.play.silhouette.persistence.daos.{DelegableAuthInfoDAO, InMemoryAuthInfoDAO}
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
 import dao.{UsersDAO, UsersDAOImpl}
 import javax.inject._
@@ -35,11 +37,16 @@ class BaseModule extends ScalaModule {
    * Configures the module.
    */
   override def configure(): Unit = {
-    bind[Silhouette[DefaultEnv]].to[SilhouetteProvider[DefaultEnv]]
     bind[UsersDAO].to[UsersDAOImpl].in[Singleton] // TODO: not sure if Singleton is needed
     bind[UserService].to[UserServiceImpl]
+    // Silhouette related
+    bind[Silhouette[DefaultEnv]].to[SilhouetteProvider[DefaultEnv]]
+    bind[IDGenerator].toInstance(new SecureRandomIDGenerator())
+    bind[FingerprintGenerator].toInstance(new DefaultFingerprintGenerator(false))
     bind[Clock].toInstance(Clock())
     bind[java.time.Clock].toInstance(java.time.Clock.systemUTC())
+    // TDOO Replace this with the bindings to your concrete DAOs
+    bind[DelegableAuthInfoDAO[PasswordInfo]].toInstance(new InMemoryAuthInfoDAO[PasswordInfo])
   }
 
   /**
@@ -86,6 +93,29 @@ class BaseModule extends ScalaModule {
         Some(Cookie.SameSite.parse(cfg.as[String]).getOrElse(throw new RuntimeException("Invalid SameSite value")))
       }
     }
+
+  /**
+   * Provides the password hasher registry.
+   *
+   * @return The password hasher registry.
+   */
+  @Provides
+  def providePasswordHasherRegistry(): PasswordHasherRegistry = {
+    PasswordHasherRegistry(new BCryptSha256PasswordHasher(), Seq(new BCryptPasswordHasher()))
+  }
+
+    /**
+   * Provides the signer for the authenticator.
+   *
+   * @param configuration The Play configuration.
+   * @return The signer for the authenticator.
+   */
+  @Provides @Named("authenticator-signer")
+  def provideAuthenticatorSigner(configuration: Configuration): Signer = {
+    val config = configuration.underlying.as[JcaSignerSettings]("silhouette.authenticator.signer")
+
+    new JcaSigner(config)
+  }
 
   /**
    * Provides the crypter for the authenticator.
