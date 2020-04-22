@@ -7,6 +7,7 @@ import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
 import com.mohiva.play.silhouette.api.services.AuthenticatorService
 import com.mohiva.play.silhouette.api.util.{Clock, FingerprintGenerator, IDGenerator, PasswordInfo}
 import com.mohiva.play.silhouette.api.{Environment, EventBus, Silhouette, SilhouetteProvider}
+import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaCrypterSettings}
 import com.mohiva.play.silhouette.impl.authenticators.{CookieAuthenticator, CookieAuthenticatorService, CookieAuthenticatorSettings}
 import com.mohiva.play.silhouette.persistence.daos.DelegableAuthInfoDAO
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
@@ -85,6 +86,19 @@ class BaseModule extends ScalaModule {
         Some(Cookie.SameSite.parse(cfg.as[String]).getOrElse(throw new RuntimeException("Invalid SameSite value")))
       }
     }
+
+  /**
+   * Provides the crypter for the authenticator.
+   *
+   * @param configuration The Play configuration.
+   * @return The crypter for the authenticator.
+   */
+  @Provides @Named("authenticator-crypter")
+  def provideAuthenticatorCrypter(configuration: Configuration): Crypter = {
+    val config = configuration.underlying.as[JcaCrypterSettings]("silhouette.authenticator.crypter")
+
+    new JcaCrypter(config)
+  }
 
   /**
    * Provides the authenticator service.

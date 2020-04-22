@@ -30,6 +30,7 @@ libraryDependencies ++= Seq(
   // Auth
   "com.mohiva" %% "play-silhouette" % silhouetteVersion,
   "com.mohiva" %% "play-silhouette-persistence" % silhouetteVersion,
+  "com.mohiva" %% "play-silhouette-crypto-jca" % silhouetteVersion,
   "com.mohiva" %% "play-silhouette-persistence-reactivemongo" % "5.0.6", // TODO: Remove this
 // Typesafe Config util
   "com.iheart" %% "ficus" % "1.4.7"
