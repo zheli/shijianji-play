@@ -1,18 +1,20 @@
 package dao
 
+import com.mohiva.play.silhouette.api.LoginInfo
 import javax.inject.{Inject, Singleton}
-import models.{User, UserId}
+import models.{Email, User, UserId}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import play.api.{Logger, MarkerContext}
 import utils.MyPostgresProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 
+// See UserSerivceImpl.scala in play-silhouette-rest-lick-reactjs-typescript project
 @Singleton
 class UsersDAOImpl @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
     extends UsersDAO
-      with DBTableDefinitions
-      with HasDatabaseConfigProvider[MyPostgresProfile] {
+    with DBTableDefinitions
+    with HasDatabaseConfigProvider[MyPostgresProfile] {
   private val logger = Logger(this.getClass)
 
   import profile.api._
@@ -23,21 +25,49 @@ class UsersDAOImpl @Inject()(protected val dbConfigProvider: DatabaseConfigProvi
   //    } yield (company.id, company.name)).sortBy(/*name*/_._2)
   //
   //    db.run(query.result).map(rows => rows.map { case (id, name) => (id.toString, name) })
-//  }
+  //  }
 
-  def insert(user: User): Future[User] = {
+  /**
+    * Saves a user.
+    *
+    * @param user The user to save.
+    * @return The saved user.
+    */
+  override def save(user: User): Future[User] = {
     val dbUser = DBUser(id = None, email = user.email.value)
-    // Output user id after insert, see https://stackoverflow.com/questions/31443505/slick-3-0-insert-and-then-get-auto-increment-value
-    val insertQuery = users.returning(users.map(_.id)).into((user, id) => user.copy(id = Some(id)))
-    val action = insertQuery += dbUser
-    db.run(action)
-    // TODO fix this
-    Future(user)
+    val dbLoginInfo = DBLoginInfo(id = None, providerID = user.loginInfo.providerID, providerKey = user.loginInfo.providerKey)
+    // We don't have the LoginInfo id so we try to get it first.
+    // If there is no LoginInfo yet for this user we retrieve the id on insertion.
+    val loginInfoAction = {
+      val retrieveLoginInfo = loginInfos
+        .filter(
+          info =>
+            info.providerID === user.loginInfo.providerID &&
+              info.providerKey === user.loginInfo.providerKey
+        )
+        .result
+        .headOption
+      val insertLoginInfo = loginInfos
+        .returning(loginInfos.map(_.id))
+        .into((info, id) => info.copy(id = Some(id))) += dbLoginInfo
+      for {
+        loginInfoOption <- retrieveLoginInfo
+        loginInfo <- loginInfoOption.map(DBIO.successful(_)).getOrElse(insertLoginInfo)
+      } yield loginInfo
+    }
+    // combine database actions to be run sequentially
+    val actions = (for {
+      userToSave <- (users.returning(users.map(_.id)).into((user, id) => user.copy(id=Some(id)))).insertOrUpdate(dbUser)
+        loginInfo <- loginInfoAction
+        _ <- userLoginInfos += DBUserLoginInfo(userToSave.get.id.get, loginInfo.id.get)
+    } yield ()).transactionally
+    db.run(actions).flatMap { _ =>
+      // stupid way to get a user with id when saving
+      find((user.loginInfo)).map(_.get)
+    }
   }
 
-  def findByEmail(email: String)(implicit mc: MarkerContext): Future[Option[User]] = {
-    logger.trace(s"find: $email")
-    db.run(users.filter(_.email === email).result.headOption)
+  def findByEmail(email: String): Future[Option[User]] = {
     // TODO fix this
     Future(None)
   }
@@ -49,11 +79,36 @@ class UsersDAOImpl @Inject()(protected val dbConfigProvider: DatabaseConfigProvi
     Future(None)
   }
 
-  def find(loginInfo: LoginInfo)
+  def find(loginInfo: LoginInfo): Future[Option[User]] = {
+    val userQuery = for {
+      dbLoginInfo <- loginInfoQuery(loginInfo)
+      dbUserLoginInfo <- userLoginInfos.filter(_.loginInfoId === dbLoginInfo.id)
+      dbUser <- users.filter(_.id === dbUserLoginInfo.userId)
+    } yield dbUser
+    db.run(userQuery.result.headOption).map { maybeDbUser =>
+      maybeDbUser.map { user =>
+        User(
+          user.id,
+          loginInfo,
+          Email(user.email)
+        )
+      }
+    }
+  }
 
   def list(): Future[Seq[User]] = {
     //    db.run(users.result)
     // TODO fix this
     Future(Seq.empty[User])
+  }
+
+  /**
+    * Finds a user by its user ID.
+    *
+    * @param userID The ID of the user to find.
+    * @return The found user or None if no user for the given ID could be found.
+    */
+  override def find(userID: UserId): Future[Option[User]] = {
+    ???
   }
 }

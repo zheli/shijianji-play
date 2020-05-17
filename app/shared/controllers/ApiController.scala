@@ -5,7 +5,7 @@ import play.api.http.Writeable
 import play.api.i18n.{I18nSupport, Messages, MessagesProvider}
 import play.api.libs.json._
 import play.api.libs.json.Writes._
-import play.api.mvc.BaseController
+import play.api.mvc.{BaseController, ControllerComponents}
 
 trait ApiController extends BaseController with I18nSupport {
   /**

@@ -16,12 +16,13 @@ object UserId {
 /**
  * The user model
  * @param id The unique ID of the user
- * @param loginInfo
+ * @param loginInfo The linked loginInfo
  * @param email the email of the authenticated provider
  */
 final case class User(
-  id: UserId,
-//  loginInfo: Seq[LoginInfo],
+  // TODO Switch to UUID user id
+  id: Option[Long],
+  loginInfo: LoginInfo,
   email: Email,
 ) extends Identity
 

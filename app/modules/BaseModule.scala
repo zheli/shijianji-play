@@ -37,7 +37,8 @@ class BaseModule extends ScalaModule {
    * Configures the module.
    */
   override def configure(): Unit = {
-    bind[UsersDAO].to[UsersDAOImpl].in[Singleton] // TODO: not sure if Singleton is needed
+//    bind[UsersDAO].to[UsersDAOImpl].in[Singleton] // TODO: not sure if Singleton is needed
+    bind[UsersDAO].to[UsersDAOImpl]
     bind[UserService].to[UserServiceImpl]
     // Silhouette related
     bind[Silhouette[DefaultEnv]].to[SilhouetteProvider[DefaultEnv]]
