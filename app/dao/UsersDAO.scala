@@ -1,31 +1,22 @@
 package dao
 
-import models.UserId
+import com.mohiva.play.silhouette.api.LoginInfo
+import models.{User, UserId}
 import play.api.db.slick.HasDatabaseConfig
 import utils.MyPostgresProfile
 
-trait UsersDAO { self: HasDatabaseConfig[MyPostgresProfile] =>
+import scala.concurrent.Future
+
+trait UsersDAO {
+  self: HasDatabaseConfig[MyPostgresProfile] =>
+
   import profile.api._
 
-  case class DBUser(id: Option[Long], email: String)
-
-  class Users(tag: Tag) extends Table[DBUser](tag, "USER") {
-    def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
-    def email = column[String]("EMAIL")
-
-    def * = (id.?, email) <> ((DBUser.apply _).tupled, DBUser.unapply)
-  }
-
-  case class DBUserLoginInfo(userId: UserId, loginInfoId: Long)
-
-  class UserLoginInfos(tag: Tag) extends Table[DBUserLoginInfo](tag, "USER_LOGIN_INFO") {
-    def userId = column[UserId]("USER_ID")
-    def loginInfoId = column[Long]("LOGIN_INFO_ID")
-
-    def * = (userId, loginInfoId) <> (DBUserLoginInfo.tupled, DBUserLoginInfo.unapply)
-  }
-
-  val users = TableQuery[Users]
-  val userLoginInfos = TableQuery[UserLoginInfos]
-
+  /**
+   * Finds a user by its login info.
+   *
+   * @param loginInfo The login info of the user to find.
+   * @return The found user or None if no user for the given login info could be found.
+   */
+  def find(loginInfo: LoginInfo): Future[Option[User]]
 }
