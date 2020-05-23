@@ -10,6 +10,7 @@ import org.joda.time.DateTimeZone
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.language.postfixOps
 
 /**
   * Handles actions to auth tokens.
@@ -39,7 +40,7 @@ class AuthTokenServiceImpl @Inject()(
   clock: Clock
 )(implicit ex: ExecutionContext)
     extends AuthTokenService {
-  override def create(userID: Long, expiry: FiniteDuration): Future[AuthToken] = {
+  override def create(userID: Long, expiry: FiniteDuration = 5 minutes): Future[AuthToken] = {
     val token = AuthToken(UUID.randomUUID(), userID, clock.now.withZone(DateTimeZone.UTC).plusSeconds(expiry.toSeconds.toInt))
     authTokenDAO.save(token)
   }

@@ -2,7 +2,8 @@ package v1.auth
 
 import com.mohiva.play.silhouette
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
-import com.mohiva.play.silhouette.api.util.PasswordHasherRegistry
+import com.mohiva.play.silhouette.api.services.AuthenticatorResult
+import com.mohiva.play.silhouette.api.util.{PasswordHasherRegistry, PasswordInfo}
 import com.mohiva.play.silhouette.api.{LoginInfo, Silhouette}
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import io.swagger.v3.oas.annotations.OpenAPIDefinition
@@ -33,7 +34,9 @@ class SignUpController @Inject() (
   passwordHasherRegistry: PasswordHasherRegistry,
   userService: UserService
 )(implicit ex: ExecutionContext) extends ApiController {
-  def signUp: Action[AnyContent] = silhouette.UnsecuredAction.async { implicit request: Request[AnyContent] =>
+  import models.AuthToken._
+
+  def signUp = silhouette.UnsecuredAction.async { implicit request: Request[AnyContent] =>
     SignUpForm.form.bindFromRequest.fold(
       form => Future.successful(BadRequest(ApiResponse("auth.signIn.form.invalid", Messages("invalid.form"), form.errors))),
       data => {
@@ -43,22 +46,18 @@ class SignUpController @Inject() (
             Future.successful(BadRequest(ApiResponse("auth.signUp.invalid", Messages("signup.userExists"))))
 
           case None =>
-            val authInfo = passwordHasherRegistry.current.hash(data.password)
+            val authInfo: PasswordInfo = passwordHasherRegistry.current.hash(data.password)
             val user = User(
               id = None,
               loginInfo = loginInfo,
               email = Email(data.email)
             )
             for {
-              userToSave <- userService.save(user)
-                authInfo <- authInfoRepository.add(loginInfo, authInfo)
-              authToken <- authTokenService.create(user.id)
-                authenticator <- silhouette.env.authenticatorService.create(loginInfo)
-                token <- silhouette.env.authenticatorService.init(authenticator)
-                result <- silhouette.env.authenticatorService.embed(token,
-                  Ok(Json.toJson(Token(token = token, expiresOn = authenticator.expirationDateTime))))
+              savedUser: User <- userService.save(user)
+              authInfo: PasswordInfo <- authInfoRepository.add(loginInfo, authInfo)
+              authToken: AuthToken <- authTokenService.create(savedUser.id.get)
             } yield {
-              ???
+              Created(ApiResponse("auth.signUp.successful", Messages("signup.successful"), Json.toJson(authToken)))
             }
 
         }

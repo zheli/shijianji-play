@@ -17,3 +17,10 @@ case class AuthToken(
   userID: Long,
   expiry: DateTime
 )
+
+object AuthToken {
+  implicit val DateTimeWriter: Writes[DateTime] = new Writes[DateTime] {
+    override def writes(dateTime: DateTime) = JsString(dateTime.toString)
+  }
+  implicit val writer: OWrites[AuthToken] = Json.writes[AuthToken]
+}
