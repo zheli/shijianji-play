@@ -46,7 +46,9 @@ class BaseModule extends ScalaModule {
     bind[FingerprintGenerator].toInstance(new DefaultFingerprintGenerator(false))
     bind[Clock].toInstance(Clock())
     bind[java.time.Clock].toInstance(java.time.Clock.systemUTC())
-    // TDOO Replace this with the bindings to your concrete DAOs
+    // Silhouette authentication
+    bind[AuthTokenDAO].to[AuthTokenDAOImpl]
+    // TODO Replace this with the bindings to your concrete DAOs
     bind[DelegableAuthInfoDAO[PasswordInfo]].toInstance(new InMemoryAuthInfoDAO[PasswordInfo])
   }
 
