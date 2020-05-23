@@ -33,8 +33,13 @@ libraryDependencies ++= Seq(
   "com.mohiva" %% "play-silhouette-password-bcrypt" % silhouetteVersion,
   "com.mohiva" %% "play-silhouette-crypto-jca" % silhouetteVersion,
   "com.mohiva" %% "play-silhouette-persistence-reactivemongo" % "5.0.6", // TODO: Remove this
-// Typesafe Config util
-  "com.iheart" %% "ficus" % "1.4.7"
+  "com.mohiva" %% "play-silhouette-testkit" % silhouetteVersion % "test",
+  // Typesafe Config util
+  "com.iheart" %% "ficus" % "1.4.7",
+  // Documentation
+  "io.swagger.core.v3" % "swagger-core" % "2.1.2"
+  //  "io.swagger" %% "swagger-play2" % "2.0.1-SNAPSHOT"
+  //  "org.webjars" % "swagger-ui" % "3.6.1",
 )
 
 resolvers ++= Seq(

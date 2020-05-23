@@ -21,7 +21,7 @@ import net.ceedubs.ficus.readers.ValueReader
 import net.codingwell.scalaguice.ScalaModule
 import play.api.Configuration
 import play.api.mvc.{Cookie, CookieHeaderEncoding}
-import services.{UserService, UserServiceImpl}
+import services.{AuthTokenService, AuthTokenServiceImpl, UserService, UserServiceImpl}
 import utils.DefaultEnv
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -48,6 +48,7 @@ class BaseModule extends ScalaModule {
     bind[java.time.Clock].toInstance(java.time.Clock.systemUTC())
     // Silhouette authentication
     bind[AuthTokenDAO].to[AuthTokenDAOImpl]
+    bind[AuthTokenService].to[AuthTokenServiceImpl]
     // TODO Replace this with the bindings to your concrete DAOs
     bind[DelegableAuthInfoDAO[PasswordInfo]].toInstance(new InMemoryAuthInfoDAO[PasswordInfo])
   }
