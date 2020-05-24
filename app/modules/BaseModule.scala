@@ -27,15 +27,16 @@ import utils.DefaultEnv
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
- * The Guice `Main` module.
- * Sets up custom components for Play.
- * https://www.playframework.com/documentation/latest/ScalaDependencyInjection
- */
+  * The Guice `Main` module.
+  * Sets up custom components for Play.
+  * https://www.playframework.com/documentation/latest/ScalaDependencyInjection
+  */
 //class modules.Module(environment: play.api.Environment, configuration: Configuration) extends ScalaModule {
 class BaseModule extends ScalaModule {
+
   /**
-   * Configures the module.
-   */
+    * Configures the module.
+    */
   override def configure(): Unit = {
 //    bind[UsersDAO].to[UsersDAOImpl].in[Singleton] // TODO: not sure if Singleton is needed
     bind[UsersDAO].to[UsersDAOImpl]
@@ -54,13 +55,13 @@ class BaseModule extends ScalaModule {
   }
 
   /**
-   * Provides the Silhouette environment.
-   *
-   * @param userService          The user service implementation.
-   * @param authenticatorService The authentication service implementation.
-   * @param eventBus             The event bus instance.
-   * @return The Silhouette environment.
-   */
+    * Provides the Silhouette environment.
+    *
+    * @param userService          The user service implementation.
+    * @param authenticatorService The authentication service implementation.
+    * @param eventBus             The event bus instance.
+    * @return The Silhouette environment.
+    */
   @Provides
   def provideEnvironment(
     userService: UserService,
@@ -76,11 +77,11 @@ class BaseModule extends ScalaModule {
   }
 
   /**
-   * Provides the auth info repository.
-   *
-   * @param passwordInfoDAO The implementation of the delegable password auth info DAO.
-   * @return The auth info repository instance.
-   */
+    * Provides the auth info repository.
+    *
+    * @param passwordInfoDAO The implementation of the delegable password auth info DAO.
+    * @return The auth info repository instance.
+    */
   @Provides
   def provideAuthInfoRepository(
     passwordInfoDAO: DelegableAuthInfoDAO[PasswordInfo]
@@ -99,21 +100,21 @@ class BaseModule extends ScalaModule {
     }
 
   /**
-   * Provides the password hasher registry.
-   *
-   * @return The password hasher registry.
-   */
+    * Provides the password hasher registry.
+    *
+    * @return The password hasher registry.
+    */
   @Provides
   def providePasswordHasherRegistry(): PasswordHasherRegistry = {
     PasswordHasherRegistry(new BCryptSha256PasswordHasher(), Seq(new BCryptPasswordHasher()))
   }
 
-    /**
-   * Provides the signer for the authenticator.
-   *
-   * @param configuration The Play configuration.
-   * @return The signer for the authenticator.
-   */
+  /**
+    * Provides the signer for the authenticator.
+    *
+    * @param configuration The Play configuration.
+    * @return The signer for the authenticator.
+    */
   @Provides @Named("authenticator-signer")
   def provideAuthenticatorSigner(configuration: Configuration): Signer = {
     val config = configuration.underlying.as[JcaSignerSettings]("silhouette.authenticator.signer")
@@ -122,11 +123,11 @@ class BaseModule extends ScalaModule {
   }
 
   /**
-   * Provides the crypter for the authenticator.
-   *
-   * @param configuration The Play configuration.
-   * @return The crypter for the authenticator.
-   */
+    * Provides the crypter for the authenticator.
+    *
+    * @param configuration The Play configuration.
+    * @return The crypter for the authenticator.
+    */
   @Provides @Named("authenticator-crypter")
   def provideAuthenticatorCrypter(configuration: Configuration): Crypter = {
     val config = configuration.underlying.as[JcaCrypterSettings]("silhouette.authenticator.crypter")
@@ -135,17 +136,17 @@ class BaseModule extends ScalaModule {
   }
 
   /**
-   * Provides the authenticator service.
-   *
-   * @param signer The signer implementation.
-   * @param crypter The crypter implementation.
-   * @param cookieHeaderEncoding Logic for encoding and decoding `Cookie` and `Set-Cookie` headers.
-   * @param fingerprintGenerator The fingerprint generator implementation.
-   * @param idGenerator The ID generator implementation.
-   * @param configuration The Play configuration.
-   * @param clock The clock instance.
-   * @return The authenticator service.
-   */
+    * Provides the authenticator service.
+    *
+    * @param signer The signer implementation.
+    * @param crypter The crypter implementation.
+    * @param cookieHeaderEncoding Logic for encoding and decoding `Cookie` and `Set-Cookie` headers.
+    * @param fingerprintGenerator The fingerprint generator implementation.
+    * @param idGenerator The ID generator implementation.
+    * @param configuration The Play configuration.
+    * @param clock The clock instance.
+    * @return The authenticator service.
+    */
   @Provides
   def provideAuthenticatorService(
     @Named("authenticator-signer") signer: Signer,
@@ -154,13 +155,22 @@ class BaseModule extends ScalaModule {
     fingerprintGenerator: FingerprintGenerator,
     idGenerator: IDGenerator,
     configuration: Configuration,
-    clock: Clock): AuthenticatorService[CookieAuthenticator] = {
+    clock: Clock
+  ): AuthenticatorService[CookieAuthenticator] = {
 
     val config = configuration.underlying.as[CookieAuthenticatorSettings]("silhouette.authenticator")
     val authenticatorEncoder = new CrypterAuthenticatorEncoder(crypter)
 
+    // TODO use stateful cookie session
     new CookieAuthenticatorService(
-      config, None, signer, cookieHeaderEncoding, authenticatorEncoder, fingerprintGenerator, idGenerator, clock
+      config,
+      None,
+      signer,
+      cookieHeaderEncoding,
+      authenticatorEncoder,
+      fingerprintGenerator,
+      idGenerator,
+      clock
     )
   }
 }

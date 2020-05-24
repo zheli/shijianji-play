@@ -19,8 +19,8 @@ import utils.DefaultEnv
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
- * Test auth endpoint
- */
+  * Test auth endpoint
+  */
 class AuthSpec extends PlaySpec with BeforeAndAfter with GuiceOneAppPerSuite with Injecting with TestDbSpec {
 
   import ThisClassLoaderEvolutionsReader.evolutions
@@ -50,14 +50,10 @@ class AuthSpec extends PlaySpec with BeforeAndAfter with GuiceOneAppPerSuite wit
       val env = FakeEnvironment[DefaultEnv](Seq(identity.loginInfo -> identity))
       val userEmail = "ha@ha.com"
       val requestBody = Json.obj("email" -> userEmail, "password" -> "test123")
-      val request: FakeRequest[AnyContentAsJson] = withAcceptJsonHeader(
-        FakeRequest(
-          POST,
-          "/v1/auth/sign-up"
-        )
-      ).withJsonBody(requestBody)
+      val request: FakeRequest[AnyContentAsJson] = withAcceptJsonHeader(FakeRequest(POST, "/v1/auth/sign-up")).withJsonBody(requestBody)
       val requestResult: Future[Result] = route(app, request).get
-      contentAsJson(requestResult) mustBe None
+      cookies(requestResult) must not be empty
+      (contentAsJson(requestResult) \ "email").as[String] mustEqual userEmail
 
       //      val usersDao = inject[UsersDAOImpl]
       //      val users = await(usersDao.list())

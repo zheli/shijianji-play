@@ -7,6 +7,7 @@ import play.api.libs.json._
 import play.api.libs.json.Writes._
 import play.api.mvc.{BaseController, ControllerComponents}
 
+// So that we don't have to write Json.toJson in our controller?
 trait ApiController extends BaseController with I18nSupport {
   /**
    * Straightforward `Writeable` for ApiResponse[T] values.
