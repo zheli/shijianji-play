@@ -58,5 +58,24 @@ class AuthSpec extends PlaySpec with BeforeAndAfter with GuiceOneAppPerSuite wit
       users.length mustBe 1
       users.head.email mustBe Email(userEmail)
     }
+
+    "reject invalid email as user sign up email" in {
+      val usersDao = inject[UsersDAOImpl]
+      val requestBody = Json.obj("email" -> "ha.com", "password" -> "test123")
+      val request = withAcceptJsonHeader(FakeRequest(POST, "/v1/auth/sign-up")).withJsonBody(requestBody)
+      val requestResult: Future[Result] = route(app, request).get
+      contentAsJson(requestResult) mustBe None
+      (contentAsJson(requestResult) \ "details").head.as[Map[String, String]].get("key") mustEqual Some("email")
+      cookies(requestResult) mustBe empty
+
+      val requestBody2 = Json.obj("email" -> "", "password" -> "test123")
+      val request2 = withAcceptJsonHeader(FakeRequest(POST, "/v1/auth/sign-up")).withJsonBody(requestBody)
+      val requestResult2: Future[Result] = route(app, request).get
+      (contentAsJson(requestResult2) \ "details").head.as[Map[String, String]].get("key") mustEqual Some("email")
+      cookies(requestResult2) mustBe empty
+
+      val users = await(usersDao.list())
+      users.length mustBe 0
+    }
   }
 }
