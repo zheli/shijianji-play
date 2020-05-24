@@ -46,20 +46,17 @@ class AuthSpec extends PlaySpec with BeforeAndAfter with GuiceOneAppPerSuite wit
 
   "auth" should {
     "create a new user from a successful post request" in {
-      val identity = User(None, LoginInfo("facebook", "apollonia@gmail.com"), Email("apollonia@gmail.com"))
-      val env = FakeEnvironment[DefaultEnv](Seq(identity.loginInfo -> identity))
+      val usersDao = inject[UsersDAOImpl]
       val userEmail = "ha@ha.com"
       val requestBody = Json.obj("email" -> userEmail, "password" -> "test123")
-      val request: FakeRequest[AnyContentAsJson] = withAcceptJsonHeader(FakeRequest(POST, "/v1/auth/sign-up")).withJsonBody(requestBody)
+      val request = withAcceptJsonHeader(FakeRequest(POST, "/v1/auth/sign-up")).withJsonBody(requestBody)
       val requestResult: Future[Result] = route(app, request).get
       cookies(requestResult) must not be empty
       (contentAsJson(requestResult) \ "email").as[String] mustEqual userEmail
 
-      //      val usersDao = inject[UsersDAOImpl]
-      //      val users = await(usersDao.list())
-      //
-      //      users.length mustBe 1
-      //      users.head.email mustBe Email(userEmail)
+      val users = await(usersDao.list())
+      users.length mustBe 1
+      users.head.email mustBe Email(userEmail)
     }
   }
 }

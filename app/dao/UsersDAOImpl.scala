@@ -57,9 +57,9 @@ class UsersDAOImpl @Inject()(protected val dbConfigProvider: DatabaseConfigProvi
     }
     // combine database actions to be run sequentially
     val actions = (for {
-      userToSave <- (users.returning(users.map(_.id)).into((user, id) => user.copy(id=Some(id)))).insertOrUpdate(dbUser)
-        loginInfo <- loginInfoAction
-        _ <- userLoginInfos += DBUserLoginInfo(userToSave.get.id.get, loginInfo.id.get)
+      userToSave <- (users.returning(users.map(_.id)).into((user, id) => user.copy(id = Some(id)))).insertOrUpdate(dbUser)
+      loginInfo <- loginInfoAction
+      _ <- userLoginInfos += DBUserLoginInfo(userToSave.get.id.get, loginInfo.id.get)
     } yield ()).transactionally
     db.run(actions).flatMap { _ =>
       // stupid way to get a user with id when saving
@@ -72,9 +72,8 @@ class UsersDAOImpl @Inject()(protected val dbConfigProvider: DatabaseConfigProvi
     Future(None)
   }
 
-  def find(userId: UserId)(implicit mc: MarkerContext): Future[Option[User]] = {
+  override def find(userId: UserId): Future[Option[User]] = {
     logger.debug(s"find: $userId")
-    //    db.run(users.filter(_.id === userId).result.headOption)
     // TODO fix this
     Future(None)
   }
@@ -96,19 +95,21 @@ class UsersDAOImpl @Inject()(protected val dbConfigProvider: DatabaseConfigProvi
     }
   }
 
-  def list(): Future[Seq[User]] = {
-    //    db.run(users.result)
-    // TODO fix this
-    Future(Seq.empty[User])
-  }
-
-  /**
-    * Finds a user by its user ID.
-    *
-    * @param userID The ID of the user to find.
-    * @return The found user or None if no user for the given ID could be found.
-    */
-  override def find(userID: UserId): Future[Option[User]] = {
-    ???
+  override def list(): Future[Seq[User]] = {
+    val actions = for {
+      user <- users
+      userLoginInfo <- userLoginInfos if user.id === userLoginInfo.userId
+      loginInfo <- loginInfos if userLoginInfo.loginInfoId === loginInfo.id
+    } yield (user, loginInfo)
+    db.run(actions.result).map { result =>
+      result.map {
+        case (dbUser: DBUser, dbLoginInfo: DBLoginInfo) =>
+          User(
+            id = dbUser.id,
+            loginInfo = LoginInfo(providerID = dbLoginInfo.providerID, providerKey = dbLoginInfo.providerKey),
+            email = Email(dbUser.email)
+          )
+      }
+    }
   }
 }
