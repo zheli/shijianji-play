@@ -4,6 +4,6 @@ addons:
   postgresql: "10"
 language: scala
 scala:
-  - 2.12.11
+  - 2.13.2
 before_script:
   - psql -c 'create database shijianji_play_test;' -U postgres

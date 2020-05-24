@@ -1,4 +1,3 @@
-
 name := """shijianji"""
 organization := "it.softfork"
 
@@ -7,8 +6,7 @@ version := "1.0-SNAPSHOT"
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
 
-//scalaVersion := "2.13.1"
-scalaVersion := "2.12.11"
+scalaVersion := "2.13.2"
 
 val silhouetteVersion = "7.0.0"
 
@@ -32,7 +30,6 @@ libraryDependencies ++= Seq(
   "com.mohiva" %% "play-silhouette-persistence" % silhouetteVersion,
   "com.mohiva" %% "play-silhouette-password-bcrypt" % silhouetteVersion,
   "com.mohiva" %% "play-silhouette-crypto-jca" % silhouetteVersion,
-  "com.mohiva" %% "play-silhouette-persistence-reactivemongo" % "5.0.6", // TODO: Remove this
   "com.mohiva" %% "play-silhouette-testkit" % silhouetteVersion % "test",
   // Typesafe Config util
   "com.iheart" %% "ficus" % "1.4.7",
@@ -46,7 +43,7 @@ resolvers ++= Seq(
   Resolver.jcenterRepo
 )
 
-scalacOptions ++=  Seq(
+scalacOptions ++= Seq(
   "-feature",
   "-deprecation",
   "-Xfatal-warnings"
