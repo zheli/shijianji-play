@@ -18,4 +18,11 @@ sbt:shijianji-play> test
 ```
 
 ## Roadmap
-- [ ] User endpoint
+Backend
+- [x] User endpoint
+  - [x] Sign up
+  - [x] Sign in
+
+Frontend 
+- [ ] User authentication
+  - [ ] User login
