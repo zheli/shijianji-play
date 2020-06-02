@@ -10,3 +10,5 @@ GET     /                           controllers.HomeController.index
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 
 ->      /v1/users                   v1.user.UserRouter
+POST    /v1/auth/sign-in            v1.auth.SignInController.signIn
+POST    /v1/auth/sign-up            v1.auth.SignUpController.signUp

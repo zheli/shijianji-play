@@ -9,7 +9,7 @@ import play.api.routing.sird._
 class UserRouter @Inject() (controller: UserController) extends SimpleRouter {
   val prefix = "/v1/Users"
 
-  def link(id: UserId): String = {
+  def link(id: Option[Long]): String = {
     import io.lemonlabs.uri.dsl._
     val url = prefix / id.toString
     url.toString
