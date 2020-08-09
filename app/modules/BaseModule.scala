@@ -50,7 +50,7 @@ class BaseModule extends ScalaModule {
     bind[Clock].toInstance(Clock())
     bind[java.time.Clock].toInstance(java.time.Clock.systemUTC())
     // Silhouette authentication
-    bind[PasswordHasher].toInstance(new BCryptPasswordHasher)
+    bind[PasswordHasher].toInstance(new BCryptSha256PasswordHasher)
     bind[AuthTokenDAO].to[AuthTokenDAOImpl]
     bind[AuthTokenService].to[AuthTokenServiceImpl]
     bind[DelegableAuthInfoDAO[PasswordInfo]].to[PasswordInfoDAOImpl]
@@ -107,20 +107,23 @@ class BaseModule extends ScalaModule {
     * @return The password hasher registry.
     */
   @Provides
-  def providePasswordHasherRegistry(): PasswordHasherRegistry = {
-    PasswordHasherRegistry(new BCryptSha256PasswordHasher(), Seq(new BCryptPasswordHasher()))
+  def providePasswordHasherRegistry(passwordHasher: PasswordHasher): PasswordHasherRegistry = {
+    PasswordHasherRegistry(passwordHasher, Seq.empty)
   }
 
   /**
     * Provides the credentials provider.
     *
-    * @param authInfoRepository The auth info repository implementation.
-    * @param passwordHasher     The default password hasher implementation.
+    * @param authInfoRepository     The auth info repository implementation.
+    * @param passwordHasherRegistry the password hasher registry.
     * @return The credentials provider.
     */
   @Provides
-  def provideCredentialsProvider(authInfoRepository: AuthInfoRepository, passwordHasher: PasswordHasher): CredentialsProvider =
-    new CredentialsProvider(authInfoRepository, PasswordHasherRegistry(passwordHasher, Seq(passwordHasher)))
+  def provideCredentialsProvider(
+    authInfoRepository: AuthInfoRepository,
+    passwordHasherRegistry: PasswordHasherRegistry
+  ): CredentialsProvider =
+    new CredentialsProvider(authInfoRepository, passwordHasherRegistry)
 
   /**
     * Provides the signer for the authenticator.
