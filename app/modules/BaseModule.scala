@@ -5,13 +5,14 @@ import com.google.inject.name.Named
 import com.mohiva.play.silhouette.api.crypto.{Crypter, CrypterAuthenticatorEncoder, Signer}
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
 import com.mohiva.play.silhouette.api.services.AuthenticatorService
-import com.mohiva.play.silhouette.api.util.{Clock, FingerprintGenerator, IDGenerator, PasswordHasherRegistry, PasswordInfo}
+import com.mohiva.play.silhouette.api.util._
 import com.mohiva.play.silhouette.api.{Environment, EventBus, Silhouette, SilhouetteProvider}
 import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaCrypterSettings, JcaSigner, JcaSignerSettings}
 import com.mohiva.play.silhouette.impl.authenticators.{CookieAuthenticator, CookieAuthenticatorService, CookieAuthenticatorSettings}
+import com.mohiva.play.silhouette.impl.providers._
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, SecureRandomIDGenerator}
 import com.mohiva.play.silhouette.password.{BCryptPasswordHasher, BCryptSha256PasswordHasher}
-import com.mohiva.play.silhouette.persistence.daos.{DelegableAuthInfoDAO, InMemoryAuthInfoDAO}
+import com.mohiva.play.silhouette.persistence.daos.DelegableAuthInfoDAO
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
 import dao.{AuthTokenDAO, AuthTokenDAOImpl, PasswordInfoDAOImpl, UsersDAO, UsersDAOImpl}
 import javax.inject._
@@ -49,6 +50,7 @@ class BaseModule extends ScalaModule {
     bind[Clock].toInstance(Clock())
     bind[java.time.Clock].toInstance(java.time.Clock.systemUTC())
     // Silhouette authentication
+    bind[PasswordHasher].toInstance(new BCryptPasswordHasher)
     bind[AuthTokenDAO].to[AuthTokenDAOImpl]
     bind[AuthTokenService].to[AuthTokenServiceImpl]
     bind[DelegableAuthInfoDAO[PasswordInfo]].to[PasswordInfoDAOImpl]
@@ -79,14 +81,14 @@ class BaseModule extends ScalaModule {
   /**
     * Provides the auth info repository.
     *
-    * @param passwordInfoDAO The implementation of the delegable password auth info DAO.
+    * @param passwordInfoDAOImpl The implementation of the delegable password auth info DAO.
     * @return The auth info repository instance.
     */
   @Provides
   def provideAuthInfoRepository(
-    passwordInfoDAO: DelegableAuthInfoDAO[PasswordInfo]
+    passwordInfoDAOImpl: DelegableAuthInfoDAO[PasswordInfo]
   ): AuthInfoRepository = {
-    new DelegableAuthInfoRepository(passwordInfoDAO)
+    new DelegableAuthInfoRepository(passwordInfoDAOImpl)
   }
 
   // For reading CookieAuthenticatorSettings
@@ -110,12 +112,24 @@ class BaseModule extends ScalaModule {
   }
 
   /**
+    * Provides the credentials provider.
+    *
+    * @param authInfoRepository The auth info repository implementation.
+    * @param passwordHasher     The default password hasher implementation.
+    * @return The credentials provider.
+    */
+  @Provides
+  def provideCredentialsProvider(authInfoRepository: AuthInfoRepository, passwordHasher: PasswordHasher): CredentialsProvider =
+    new CredentialsProvider(authInfoRepository, PasswordHasherRegistry(passwordHasher, Seq(passwordHasher)))
+
+  /**
     * Provides the signer for the authenticator.
     *
     * @param configuration The Play configuration.
     * @return The signer for the authenticator.
     */
-  @Provides @Named("authenticator-signer")
+  @Provides
+  @Named("authenticator-signer")
   def provideAuthenticatorSigner(configuration: Configuration): Signer = {
     val config = configuration.underlying.as[JcaSignerSettings]("silhouette.authenticator.signer")
 
