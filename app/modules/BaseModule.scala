@@ -13,13 +13,14 @@ import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, Secure
 import com.mohiva.play.silhouette.password.{BCryptPasswordHasher, BCryptSha256PasswordHasher}
 import com.mohiva.play.silhouette.persistence.daos.{DelegableAuthInfoDAO, InMemoryAuthInfoDAO}
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
-import dao.{AuthTokenDAO, AuthTokenDAOImpl, UsersDAO, UsersDAOImpl}
+import dao.{AuthTokenDAO, AuthTokenDAOImpl, PasswordInfoDAOImpl, UsersDAO, UsersDAOImpl}
 import javax.inject._
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.ValueReader
 import net.codingwell.scalaguice.ScalaModule
 import play.api.Configuration
+import play.api.db.slick.DatabaseConfigProvider
 import play.api.mvc.{Cookie, CookieHeaderEncoding}
 import services.{AuthTokenService, AuthTokenServiceImpl, UserService, UserServiceImpl}
 import utils.DefaultEnv
@@ -50,8 +51,7 @@ class BaseModule extends ScalaModule {
     // Silhouette authentication
     bind[AuthTokenDAO].to[AuthTokenDAOImpl]
     bind[AuthTokenService].to[AuthTokenServiceImpl]
-    // TODO Replace this with the bindings to your concrete DAOs
-    bind[DelegableAuthInfoDAO[PasswordInfo]].toInstance(new InMemoryAuthInfoDAO[PasswordInfo])
+    bind[DelegableAuthInfoDAO[PasswordInfo]].to[PasswordInfoDAOImpl]
   }
 
   /**
@@ -172,5 +172,10 @@ class BaseModule extends ScalaModule {
       idGenerator,
       clock
     )
+  }
+
+  @Provides
+  def providePasswordInfoDAO(dbConfigProvider: DatabaseConfigProvider) = {
+    new PasswordInfoDAOImpl(dbConfigProvider)
   }
 }
