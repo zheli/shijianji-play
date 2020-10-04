@@ -32,11 +32,7 @@ class PasswordInfoDAOImpl @Inject()(protected val dbConfigProvider: DatabaseConf
       // Not sure why this query doesn't work
       // dbPasswordInfo <- passwordInfos if dbPasswordInfo.loginInfoId == dbLoginInfo.id
       dbPasswordInfo <- passwordInfos.filter(_.loginInfoId === dbLoginInfo.id)
-    } yield {
-      logger.debug(s"dbLoginInfo $dbLoginInfo")
-      logger.debug(s"dbPasswordInfo $dbPasswordInfo")
-      dbPasswordInfo
-    }
+    } yield dbPasswordInfo
   }
 
   // Use subquery workaround instead of join to get authinfo because slick only supports selecting

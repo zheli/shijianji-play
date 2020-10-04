@@ -17,6 +17,7 @@ import test.TestDbSpec
 import utils.DefaultEnv
 
 import scala.concurrent.{ExecutionContext, Future}
+import dao.PasswordInfoDAOImpl
 
 /**
   * Test auth endpoint
@@ -59,6 +60,22 @@ class AuthSpec extends PlaySpec with BeforeAndAfter with GuiceOneAppPerSuite wit
       users.head.email mustBe Email(userEmail)
     }
 
+    "Cannot create new users with duplicate email" in {
+      val usersDao = inject[UsersDAOImpl]
+      val userEmail = "ha@ha.com"
+      val requestBody = Json.obj("email" -> userEmail, "password" -> "test123")
+      val request = withAcceptJsonHeader(FakeRequest(POST, "/v1/auth/sign-up")).withJsonBody(requestBody)
+      await(route(app, request).get)
+
+      val request2Result = route(app, request).get
+      status(request2Result) mustBe BAD_REQUEST
+      cookies(request2Result) mustBe empty
+
+      val users = await(usersDao.list())
+      users.length mustBe 1
+      users.head.email mustBe Email(userEmail)
+    }
+
     "reject invalid email as user sign up email" in {
       val usersDao = inject[UsersDAOImpl]
       val requestBody = Json.obj("email" -> "ha.com", "password" -> "test123")
@@ -83,7 +100,6 @@ class AuthSpec extends PlaySpec with BeforeAndAfter with GuiceOneAppPerSuite wit
       val requestBody = Json.obj("email" -> userEmail, "password" -> "test123")
       val request1 = withAcceptJsonHeader(FakeRequest(POST, "/v1/auth/sign-up")).withJsonBody(requestBody)
       await(route(app, request1).get)
-      await(usersDao.list())
 
       val request2 = withAcceptJsonHeader(FakeRequest(POST, "/v1/auth/sign-in")).withJsonBody(requestBody)
       val response = route(app, request2).get

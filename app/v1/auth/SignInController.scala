@@ -21,8 +21,8 @@ import services.UserService
 import shared.controllers.ApiController
 import utils.DefaultEnv
 
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 // Inspired by play-silhouette-seed
 class SignInController @Inject()(
@@ -44,7 +44,6 @@ class SignInController @Inject()(
     */
   def signIn = silhouette.UnsecuredAction.async(parse.json[Credentials]) { implicit request =>
     //  def signIn = silhouette.UnsecuredAction.async { implicit request =>
-    logger.debug(s"Request: $request")
     val credentials = Credentials(request.body.identifier, request.body.password)
     credentialsProvider
       .authenticate(credentials)
