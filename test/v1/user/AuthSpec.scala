@@ -18,6 +18,7 @@ import utils.DefaultEnv
 
 import scala.concurrent.{ExecutionContext, Future}
 import dao.PasswordInfoDAOImpl
+import play.api.libs.json._
 
 /**
   * Test auth endpoint
@@ -104,7 +105,7 @@ class AuthSpec extends PlaySpec with BeforeAndAfter with GuiceOneAppPerSuite wit
       val request2 = withAcceptJsonHeader(FakeRequest(POST, "/v1/auth/sign-in")).withJsonBody(requestBody)
       val response = route(app, request2).get
       status(response) mustBe OK
-      (contentAsString(response)) mustBe ""
+      (contentAsJson(response) \ "email") mustEqual JsDefined(JsString("ha@ha.com"))
       cookies(response) must not be empty
     }
   }

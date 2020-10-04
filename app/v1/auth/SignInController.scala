@@ -11,6 +11,7 @@ import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import formatters.json.CredentialsFormat
 import javax.inject.Inject
 import models.User
+import models.User.formatter
 import net.ceedubs.ficus.Ficus._
 import org.joda.time.DateTime
 import play.api.Configuration
@@ -62,7 +63,7 @@ class SignInController @Inject()(
                   .init(authenticator)
                   .flatMap { token: Cookie =>
                     silhouette.env.authenticatorService
-                      .embed(token, Ok(""))
+                      .embed(token, Ok(Json.toJson(user)))
                   }
               }
 
