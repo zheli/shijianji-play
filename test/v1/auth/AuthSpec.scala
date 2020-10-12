@@ -1,4 +1,4 @@
-package v1.user
+package v1.auth
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.test._
