@@ -20,7 +20,7 @@ trait DBTableDefinitions {
     // TODO loginInfoId should be unique
     def loginInfoId = column[Long]("LOGIN_INFO_ID")
 
-    def * = (hasher, password, salt, loginInfoId) <> (DBPasswordInfo.tupled, DBPasswordInfo.unapply)
+    def * = (hasher, password, salt, loginInfoId).<>(DBPasswordInfo.tupled, DBPasswordInfo.unapply)
   }
   val passwordInfos = TableQuery[PasswordInfos]
 
@@ -33,7 +33,7 @@ trait DBTableDefinitions {
 
     def providerKey = column[String]("PROVIDER_KEY")
 
-    def * = (id.?, providerID, providerKey) <> (DBLoginInfo.tupled, DBLoginInfo.unapply)
+    def * = (id.?, providerID, providerKey).<>(DBLoginInfo.tupled, DBLoginInfo.unapply)
   }
 
   val loginInfos = TableQuery[LoginInfos]
@@ -49,7 +49,7 @@ trait DBTableDefinitions {
 
     def email = column[String]("EMAIL")
 
-    def * = (id.?, email) <> ((DBUser.apply _).tupled, DBUser.unapply)
+    def * = (id.?, email).<>((DBUser.apply _).tupled, DBUser.unapply)
   }
 
   case class DBUserLoginInfo(userId: Long, loginInfoId: Long)
@@ -59,7 +59,7 @@ trait DBTableDefinitions {
 
     def loginInfoId = column[Long]("LOGIN_INFO_ID")
 
-    def * = (userId, loginInfoId) <> (DBUserLoginInfo.tupled, DBUserLoginInfo.unapply)
+    def * = (userId, loginInfoId).<>(DBUserLoginInfo.tupled, DBUserLoginInfo.unapply)
   }
 
   val users = TableQuery[Users]
