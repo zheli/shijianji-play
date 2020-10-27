@@ -2,6 +2,7 @@
 
 logs
 target
+/.bsp
 /.classpath
 /.g8
 /.idea
@@ -11,6 +12,6 @@ target
 /RUNNING_PID
 
 # Metals relevant files
-/.bloop/
+.bloop/
 /.metals/
 /project/metals.sbt
