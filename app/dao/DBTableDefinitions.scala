@@ -14,7 +14,9 @@ trait DBTableDefinitions {
 
   class PasswordInfos(tag: Tag) extends Table[DBPasswordInfo](tag, "PASSWORD_INFO") {
     def hasher = column[String]("HASHER")
+
     def password = column[String]("PASSWORD")
+
     def salt = column[Option[String]]("SALT")
 
     // TODO loginInfoId should be unique
@@ -22,9 +24,12 @@ trait DBTableDefinitions {
 
     def * = (hasher, password, salt, loginInfoId).<>(DBPasswordInfo.tupled, DBPasswordInfo.unapply)
   }
+
   val passwordInfos = TableQuery[PasswordInfos]
 
-  case class DBLoginInfo(id: Option[Long], providerID: String, providerKey: String)
+  case class DBLoginInfo(id: Option[Long], providerID: String, providerKey: String) {
+    def toLoginInfo: LoginInfo = LoginInfo(providerID = providerID, providerKey = providerKey)
+  }
 
   class LoginInfos(tag: Tag) extends Table[DBLoginInfo](tag, "LOGIN_INFO") {
     def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
