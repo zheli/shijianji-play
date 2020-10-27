@@ -1,7 +1,8 @@
 package dao.authentication
 
-import java.time.OffsetDateTime
+import java.time.{OffsetDateTime, ZonedDateTime}
 
+import com.mohiva.play.silhouette.impl.authenticators.BearerTokenAuthenticator
 import play.api.db.slick.HasDatabaseConfigProvider
 import utils.MyPostgresProfile
 
@@ -21,8 +22,8 @@ trait AuthenticatorDBTableDefinitions {
   case class DBBearerTokenAuthenticator(
     authenticatorId: String,
     loginInfoId: Long,
-    lastUsedDateTime: OffsetDateTime,
-    expirationDateTime: OffsetDateTime,
+    lastUsedDateTime: ZonedDateTime,
+    expirationDateTime: ZonedDateTime,
     idleTimeout: Option[Long]
   )
 
@@ -31,9 +32,9 @@ trait AuthenticatorDBTableDefinitions {
 
     def loginInfoId = column[Long]("LOGIN_INFO_ID")
 
-    def lastUsedDateTime = column[OffsetDateTime]("LAST_USED_DATETIME")
+    def lastUsedDateTime = column[ZonedDateTime]("LAST_USED_DATETIME")
 
-    def expirationDateTime = column[OffsetDateTime]("EXPIRATION_DATETIME")
+    def expirationDateTime = column[ZonedDateTime]("EXPIRATION_DATETIME")
 
     def idleTimeout = column[Option[Long]]("IDLE_TIMEOUT")
 
