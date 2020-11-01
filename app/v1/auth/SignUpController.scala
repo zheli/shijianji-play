@@ -51,8 +51,8 @@ class SignUpController @Inject()(
                 savedUser: User <- userService.save(user)
                 _: PasswordInfo <- authInfoRepository.add(loginInfo, authInfo)
                 authenticator <- silhouette.env.authenticatorService.create(loginInfo)
-                cookie: Cookie <- silhouette.env.authenticatorService.init(authenticator)
-                result: AuthenticatorResult <- silhouette.env.authenticatorService.embed(cookie, Created(Json.toJson(savedUser)))
+                token <- silhouette.env.authenticatorService.init(authenticator)
+                result: AuthenticatorResult <- silhouette.env.authenticatorService.embed(token, Created(Json.toJson(savedUser)))
               } yield result
 
           }

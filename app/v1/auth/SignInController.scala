@@ -56,12 +56,12 @@ class SignInController @Inject()(
               .map {
                 case authenticator => authenticator
               }
-              .flatMap { authenticator: CookieAuthenticator =>
+              .flatMap { authenticator =>
                 //TODO enable eventBus
                 //silhouette.env.eventBus.publish(LoginEvent(user, request))
                 silhouette.env.authenticatorService
                   .init(authenticator)
-                  .flatMap { token: Cookie =>
+                  .flatMap { token =>
                     silhouette.env.authenticatorService
                       .embed(token, Ok(Json.toJson(user)))
                   }
@@ -121,6 +121,7 @@ class SignInController @Inject()(
     * @return The changed authenticator if the remember me flag was activated, otherwise the unchanged authenticator.
     */
   private def configureAuthenticator(rememberMe: Boolean, authenticator: DefaultEnv#A): DefaultEnv#A = {
+    // TODO fix rememberMe feature
     if (rememberMe) {
       val c = configuration.underlying
       val configPath = "silhouette.authenticator.rememberMe"
@@ -130,8 +131,7 @@ class SignInController @Inject()(
 
       authenticator.copy(
         expirationDateTime = expirationDateTime,
-        idleTimeout = c.getAs[FiniteDuration](s"$configPath.authenticatorIdleTimeout"),
-        cookieMaxAge = c.getAs[FiniteDuration](s"$configPath.cookieMaxAge")
+        idleTimeout = c.getAs[FiniteDuration](s"$configPath.authenticatorIdleTimeout")
       )
     } else {
       authenticator
