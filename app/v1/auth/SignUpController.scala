@@ -29,32 +29,34 @@ class SignUpController @Inject()(
     {
 
   def signUp = silhouette.UnsecuredAction.async { implicit request: Request[AnyContent] =>
-    SignUpForm.form.bindFromRequest.fold(
-      form => Future.successful(BadRequest(ApiResponse("auth.signIn.form.invalid", Messages("invalid.form"), form.errors))),
-      data => {
-        val loginInfo = LoginInfo(CredentialsProvider.ID, data.email)
-        userService.retrieve(loginInfo).flatMap {
-          case Some(_) =>
-            Future.successful(BadRequest(ApiResponse("auth.signUp.invalid", Messages("signup.userExists"))))
+    SignUpForm.form
+      .bindFromRequest()
+      .fold(
+        form => Future.successful(BadRequest(ApiResponse("auth.signIn.form.invalid", Messages("invalid.form"), form.errors))),
+        data => {
+          val loginInfo = LoginInfo(CredentialsProvider.ID, data.email)
+          userService.retrieve(loginInfo).flatMap {
+            case Some(_) =>
+              Future.successful(BadRequest(ApiResponse("auth.signUp.invalid", Messages("signup.userExists"))))
 
-          case None =>
-            val authInfo: PasswordInfo = passwordHasherRegistry.current.hash(data.password)
-            val user = User(
-              id = None,
-              loginInfo = loginInfo,
-              email = Email(data.email)
-            )
-            // TODO: add user activate email feature
-            for {
-              savedUser: User <- userService.save(user)
-              _: PasswordInfo <- authInfoRepository.add(loginInfo, authInfo)
-              authenticator <- silhouette.env.authenticatorService.create(loginInfo)
-              cookie: Cookie <- silhouette.env.authenticatorService.init(authenticator)
-              result: AuthenticatorResult <- silhouette.env.authenticatorService.embed(cookie, Created(Json.toJson(savedUser)))
-            } yield result
+            case None =>
+              val authInfo: PasswordInfo = passwordHasherRegistry.current.hash(data.password)
+              val user = User(
+                id = None,
+                loginInfo = loginInfo,
+                email = Email(data.email)
+              )
+              // TODO: add user activate email feature
+              for {
+                savedUser: User <- userService.save(user)
+                _: PasswordInfo <- authInfoRepository.add(loginInfo, authInfo)
+                authenticator <- silhouette.env.authenticatorService.create(loginInfo)
+                cookie: Cookie <- silhouette.env.authenticatorService.init(authenticator)
+                result: AuthenticatorResult <- silhouette.env.authenticatorService.embed(cookie, Created(Json.toJson(savedUser)))
+              } yield result
 
+          }
         }
-      }
-    )
+      )
   }
 }
