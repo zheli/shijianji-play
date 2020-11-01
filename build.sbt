@@ -13,7 +13,7 @@ val silhouetteVersion = "7.0.0"
 libraryDependencies ++= Seq(
   // Dependency Injection
   guice,
-  "net.codingwell" %% "scala-guice" % "4.2.6",
+  "net.codingwell" %% "scala-guice" % "4.2.9",
   // Test
   "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test,
   // Logging
